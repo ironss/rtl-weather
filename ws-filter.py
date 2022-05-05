@@ -12,10 +12,10 @@ class Exponential_smoothing_1:
             self.alpha = 1-math.exp(-1/tau)
         else:
             raise ValueError
-            
+
         self.value = None
         self.filtered = None
-        
+
         for v in values:
             self.update(v)
 
@@ -26,10 +26,10 @@ class Exponential_smoothing_1:
             self.filtered = value
         else:
             self.filtered = (1 - self.alpha) * self.filtered + self.alpha * value
-        
+
         return self.filtered, None
-        
-        
+
+
 class Circular_filter:
     def __init__(self, filter_type, args):
         self.filter_x = filter_type(*args)
@@ -42,7 +42,7 @@ class Circular_filter:
         xf, _ = self.filter_x.update(x)
         yf, _ = self.filter_y.update(y)
         self.filtered = math.atan2(yf, xf)
-        
+
         return self.filtered, None
 
 
@@ -50,29 +50,28 @@ class Rain_record:
     def __init__(self, duration_s):
         self.duration_s = duration_s
         self.records = []
-        
+
     def update(self, ts, rain_mm):
         self.records.append((ts, rain_mm))
         ts_first = ts - self.duration_s
-        
+
         self.records = [ r for r in self.records if r[0] >= ts_first ]
         return rain_mm - self.records[0][1]
-        
 
 if __name__ == '__main__':
     import sys
     import json
     import math
-    
+
     verbosity = 0
     print_output = 1
-    
+
     wind_dir1 = Circular_filter(Exponential_smoothing_1, (0.05, ))
     wind1 = Exponential_smoothing_1(0.05)
     wind2 = Exponential_smoothing_1(0.05)
     rain_1h = Rain_record(3600)
     rain_24 = Rain_record(86400)
-    
+
     for l in sys.stdin:
         j = json.loads(l)
         if verbosity >= 2:
@@ -90,12 +89,12 @@ if __name__ == '__main__':
 
 
         # Wind speed smoothing
-        wind_avg_kmh = j['wind_avg_km_h']        
+        wind_avg_kmh = j['wind_avg_km_h']
         wind_avg_smooth_kmh = wind1.update(wind_avg_kmh)[0]
         j['wind_avg_smooth_km_h'] = round(wind_avg_smooth_kmh, 1)
         if verbosity >= 1:
             print('Wind avg: {}, {}'.format(wind_avg_kmh, wind_avg_smooth_kmh))
-            
+
 
         wind_max_kmh = j['wind_max_km_h']
         wind_max_smooth_kmh = wind2.update(wind_max_kmh)[0]
@@ -103,7 +102,7 @@ if __name__ == '__main__':
         if verbosity >= 1:
             print('Wind max: {}, {}'.format(wind_avg_kmh, wind_avg_smooth_kmh))
 
-        
+
         # Rain calculations
         ts = int(j['time'])
         rain_mm = j['rain_mm']
@@ -116,4 +115,4 @@ if __name__ == '__main__':
 
 
         if print_output:
-            print(json.dumps(j))
+            print(json.dumps(j), flush=True)
