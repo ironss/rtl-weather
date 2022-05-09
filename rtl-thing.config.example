@@ -1,0 +1,7 @@
+RTL_SERIAL=<something>
+
+MQTT_HOST=test.mosquitto.org
+MQTT_PORT=1884
+MQTT_VER=mqttv5
+MQTT_TOPIC=v1/devices/me/telemetry
+MQTT_TOKEN=<something>

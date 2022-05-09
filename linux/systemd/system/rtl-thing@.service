@@ -1,0 +1,15 @@
+[Unit]
+Description=433 MHz weather station to Thingsboard
+After=network.target
+
+[Service]
+User=%i
+Group=%i
+WorkingDirectory=/home/%i/workspace/rtl-thing
+ExecStart=/home/%i/workspace/rtl-thing/rtl-thing
+#ExecStart=/home/rtl-thing/rtl-thing/rtl-thing
+Restart=always
+
+[Install]
+WantedBy=default.target
+

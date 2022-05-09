@@ -1,0 +1,13 @@
+#! /bin/sh
+
+. ./rtl-thing.config
+
+rtl_433 -d:$RTL_SERIAL -F json -M time:unix:utc -M protocol -M level -C si | \
+tee -a rtl-thing.log | \
+python3 ./ws-filter.py | \
+tee -a ws-filter.log | \
+jq --compact-output --monochrome-output --unbuffered \
+   '{ ts: (.time | tonumber * 1000), values: {battery_ok, temperature_C, humidity, wind_dir_deg, wind_avg_km_h, wind_max_km_h, rain_mm, rssi, snr, noise, wind_dir_smooth_deg, wind_avg_smooth_km_h, wind_max_smooth_km_h, rain_1h_mm, rain_24h_mm}}' | \
+tee -a jq.log | \
+mosquitto_pub -V $MQTT_VER --host $MQTT_HOST --port $MQTT_PORT --topic $MQTT_TOPIC --username $MQTT_TOKEN -l
+
