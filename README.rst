@@ -1,5 +1,4 @@
 
-
 Setup
 =====
 
@@ -33,11 +32,73 @@ Local device
 Example
 =======
 
-RTL_SERIAL=77771111153705700
-MQTT_HOST=iot.irons.nz
+RTL_SERIAL=<redacted>
+MQTT_HOST=<redacted>
 MQTT_PORT=1883
 MQTT_VER=mqttv5
 MQTT_TOPIC=v1/devices/me/telemetry
-MQTT_TOKEN=d6be36748d0a44368dab6515f8807f71
+MQTT_TOKEN=<redacted>
 
 rtl_433 -d:$RTL_SERIAL -F json -M time:unix:utc -M protocol -M level -C si | jq --compact-output --monochrome-output --unbuffered '{ ts: (.time | tonumber * 1000), values: {battery_ok, temperature_C, humidity, wind_dir_deg, wind_avg_km_h, wind_max_km_h, rain_mm, rssi, snr, noise}}' | mosquitto_pub -V $MQTT_VER --host $MQTT_HOST --port $MQTT_PORT --topic $MQTT_TOPIC --username $MQTT_TOKEN -l
+
+
+Use SQLite to store the data from rtl_433, rather than a log file
+
+Advantages
+
+* Can separate receiving raw data from uploading to server.
+* Can record which data has been uploaded
+
+Disadvantage
+
+* How to know when new data has arrived
+
+
+Note
+
+Using 
+
+
+rtl_433 -> database
+database -> script -> MQTT upload
+
+
+# Initialise the database
+rm rtl-weather.db
+sqlite3 rtl-weather.db 'CREATE TABLE IF NOT EXISTS "rtl_json" ( "id" INTEGER PRIMARY KEY AUTOINCREMENT, "json" TEXT, "ts" INTEGER);'
+
+
+# Use jq to modify the JSON
+# This takes a few seconds for 20k records
+( 
+echo "BEGIN TRANSACTION;";
+
+cat rtl-thing.log | tail -n 100 | jq --unbuffered --compact-output -r '@sh "\(now) \(.|tostring)"' | (while true; do read ts json; if [ _$ts = _ ]; then exit 0; fi ; echo "INSERT OR IGNORE INTO rtl_json (json, ts) VALUES ($json, $ts);"; done);  
+
+echo "COMMIT TRANSACTION;"; ) | sqlite3 rtl-weather.db
+
+
+# Use 'date +%s' to get the timestamp in unix1970 seconds
+# This takes a few 10s of seconds for 20k records
+( 
+echo "BEGIN TRANSACTION;"; 
+cat rtl-thing.log | tail -n 100 | (while true; do read json; if [ "_$json" = "_" ]; then exit 0; fi ; echo "INSERT OR IGNORE INTO rtl_json (json, ts) VALUES ('$json', $(date +%s));"; done);  
+echo "COMMIT TRANSACTION;"; 
+) sqlite3 rtl-weather.db
+
+
+Note: Using jq, the data stored in the database has trailing zeros stripped from 
+floating point numbers. This reduces the size of the database.
+
+For 20k records
+* log file 7 MB
+* sqlite database with trailing zero stripped: 6.3 MB
+* sqlite database with original data: 7.4 MB
+
+However, the sqlite database includes an additional timestamp
+and a sequence number
+
+The weather station sends a reading about every 45 seconds, or
+about 2000 readings per day. Each reading is about 350 bytes of
+JSON.
+
