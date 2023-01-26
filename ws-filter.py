@@ -79,39 +79,57 @@ if __name__ == '__main__':
 
 
         # Wind direction smoothing
-        wind_dir_deg = j['wind_dir_deg']
-        wind_dir_smooth1_deg = math.degrees(wind_dir1.update(math.radians(wind_dir_deg))[0]) % 360
-        j['wind_dir_smooth_deg'] = round(wind_dir_smooth1_deg)
-        if verbosity >= 1:
-            #print('{}'.format(wind_dir_deg))
-            print('Wind dir: {}, {}'.format(wind_dir_deg, wind_dir_smooth1_deg), file=sys.stdout)
-            #print('{}, {}, {}'.format(wind_dir_deg, wind_dir_smooth1_deg, wind_dir_smooth2_deg))
+        try:
+            wind_dir_deg = j['wind_dir_deg']
+        except KeyError:
+            wind_dir_deg = None
+
+        if wind_dir_deg is not None:
+            wind_dir_smooth1_deg = math.degrees(wind_dir1.update(math.radians(wind_dir_deg))[0]) % 360
+            j['wind_dir_smooth_deg'] = round(wind_dir_smooth1_deg)
+            if verbosity >= 1:
+                print('Wind dir: {}, {}'.format(wind_dir_deg, wind_dir_smooth1_deg), file=sys.stdout)
 
 
         # Wind speed smoothing
-        wind_avg_kmh = j['wind_avg_km_h']
-        wind_avg_smooth_kmh = wind1.update(wind_avg_kmh)[0]
-        j['wind_avg_smooth_km_h'] = round(wind_avg_smooth_kmh, 1)
-        if verbosity >= 1:
-            print('Wind avg: {}, {}'.format(wind_avg_kmh, wind_avg_smooth_kmh))
+        try:
+            wind_avg_kmh = j['wind_avg_km_h']
+        except KeyError:
+           wind_avg_kmh = None
+
+        if wind_avg_kmh is not None:
+            wind_avg_smooth_kmh = wind1.update(wind_avg_kmh)[0]
+            j['wind_avg_smooth_km_h'] = round(wind_avg_smooth_kmh, 1)
+            if verbosity >= 1:
+                print('Wind avg: {}, {}'.format(wind_avg_kmh, wind_avg_smooth_kmh))
 
 
-        wind_max_kmh = j['wind_max_km_h']
-        wind_max_smooth_kmh = wind2.update(wind_max_kmh)[0]
-        j['wind_max_smooth_km_h'] = wind_max_smooth_kmh
-        if verbosity >= 1:
-            print('Wind max: {}, {}'.format(wind_avg_kmh, wind_avg_smooth_kmh))
+        try:
+            wind_max_kmh = j['wind_max_km_h']
+        except KeyError:
+            wind_max_kmh = None
+
+        if wind_max_kmh is not None:
+            wind_max_smooth_kmh = wind2.update(wind_max_kmh)[0]
+            j['wind_max_smooth_km_h'] = wind_max_smooth_kmh
+            if verbosity >= 1:
+                print('Wind max: {}, {}'.format(wind_avg_kmh, wind_avg_smooth_kmh))
 
 
         # Rain calculations
-        ts = int(j['time'])
-        rain_mm = j['rain_mm']
-        rain_1h_mm  = rain_1h.update(ts, rain_mm)
-        rain_24h_mm = rain_24.update(ts, rain_mm)
-        j['rain_1h_mm'] = round(rain_1h_mm, 1)
-        j['rain_24h_mm'] = round(rain_24h_mm, 1)
-        if verbosity >= 1:
-            print('Rain: {}, {}, {}'.format(rain_mm, rain_1h_mm, rain_24h_mm))
+        try:
+            ts = int(j['time'])
+            rain_mm = j['rain_mm']
+        except KeyError:
+            ts = None
+
+        if ts is not None:
+            rain_1h_mm  = rain_1h.update(ts, rain_mm)
+            rain_24h_mm = rain_24.update(ts, rain_mm)
+            j['rain_1h_mm'] = round(rain_1h_mm, 1)
+            j['rain_24h_mm'] = round(rain_24h_mm, 1)
+            if verbosity >= 1:
+                print('Rain: {}, {}, {}'.format(rain_mm, rain_1h_mm, rain_24h_mm))
 
 
         if print_output:
