@@ -1,3 +1,59 @@
+Purpose
+#######
+
+Functionality
+=============
+
+* Receive local data from weather station over 433 MHz RF link
+* Receive local data from other local devices via MQTT
+* Receive local data from other local devices via HTTP API
+
+* Receive weather forecasts from various weather forecast sites
+* Receive tide forecasts from various sources
+* Calculate satellite passes from satellite-prediction software
+* Calculate sunrise, sunset, moonrise and moonset times
+
+* Process local data
+    * Convert wind speed and direction to cartesian (XY) values
+    * Low-pass filter these values to remove noise
+    * Calculate rain rates from rain counter
+        * 1-hour rain rate
+        * 24-hour rain rate
+
+* Store raw and processed values in a suitable database
+
+* Make data updates available via a local MQTT broker
+* Send weather updates to various weather and IOT sites using their HTTP API
+* Publish data updates to various MQTT brokers
+
+* Make current data available via local HTTP API
+* Make current data available via Modbus
+* Make historical data (from the database) vailable via local HTTP API
+
+* Make current and historical data available via a local website
+
+
+Parameters of interest
+======================
+
+* Outside air temperature
+* Inside air temperature
+* Soil temperature
+
+* Air pressure
+* Air humidity
+
+* Wind speed average
+* Wind speed gust
+* Wind direction raw
+* Wind direction smoothed
+
+* Battery level of each battery-powered device
+* Signal level of each RF and WiFi device
+* SNR of each RF and WiFi device
+
+* Weather forecasts at various locations
+* Sunrise, sunset, moonrise and moonset forecasts at various
 
 Setup
 =====
@@ -54,9 +110,15 @@ Disadvantage
 * How to know when new data has arrived
 
 
-Note
+TODO
+====
 
-Using 
+* Receive weather data from local sources
+
+Notes
+=====
+
+Using
 
 
 rtl_433 -> database
@@ -70,24 +132,24 @@ sqlite3 rtl-weather.db 'CREATE TABLE IF NOT EXISTS "rtl_json" ( "id" INTEGER PRI
 
 # Use jq to modify the JSON
 # This takes a few seconds for 20k records
-( 
+(
 echo "BEGIN TRANSACTION;";
 
-cat rtl-thing.log | tail -n 100 | jq --unbuffered --compact-output -r '@sh "\(now) \(.|tostring)"' | (while true; do read ts json; if [ _$ts = _ ]; then exit 0; fi ; echo "INSERT OR IGNORE INTO rtl_json (json, ts) VALUES ($json, $ts);"; done);  
+cat rtl-thing.log | tail -n 100 | jq --unbuffered --compact-output -r '@sh "\(now) \(.|tostring)"' | (while true; do read ts json; if [ _$ts = _ ]; then exit 0; fi ; echo "INSERT OR IGNORE INTO rtl_json (json, ts) VALUES ($json, $ts);"; done);
 
 echo "COMMIT TRANSACTION;"; ) | sqlite3 rtl-weather.db
 
 
 # Use 'date +%s' to get the timestamp in unix1970 seconds
 # This takes a few 10s of seconds for 20k records
-( 
-echo "BEGIN TRANSACTION;"; 
-cat rtl-thing.log | tail -n 100 | (while true; do read json; if [ "_$json" = "_" ]; then exit 0; fi ; echo "INSERT OR IGNORE INTO rtl_json (json, ts) VALUES ('$json', $(date +%s));"; done);  
-echo "COMMIT TRANSACTION;"; 
+(
+echo "BEGIN TRANSACTION;";
+cat rtl-thing.log | tail -n 100 | (while true; do read json; if [ "_$json" = "_" ]; then exit 0; fi ; echo "INSERT OR IGNORE INTO rtl_json (json, ts) VALUES ('$json', $(date +%s));"; done);
+echo "COMMIT TRANSACTION;";
 ) sqlite3 rtl-weather.db
 
 
-Note: Using jq, the data stored in the database has trailing zeros stripped from 
+Note: Using jq, the data stored in the database has trailing zeros stripped from
 floating point numbers. This reduces the size of the database.
 
 For 20k records
