@@ -63,6 +63,10 @@ if __name__ == '__main__':
     import json
     import math
 
+
+    sensor_model = 'Fineoffset-WHx080'
+    sensor_id = 87
+
     verbosity = 0
     print_output = 1
 
@@ -77,6 +81,11 @@ if __name__ == '__main__':
         if verbosity >= 2:
             print(j, file=sys.stderr)
 
+        if j['model'] != sensor_model:
+            continue
+
+        if j['id'] != sensor_id:
+            continue
 
         # Wind direction smoothing
         try:
