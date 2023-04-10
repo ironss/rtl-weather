@@ -58,17 +58,20 @@ class Rain_record:
         self.records = [ r for r in self.records if r[0] >= ts_first ]
         return rain_mm - self.records[0][1]
 
+
 if __name__ == '__main__':
     import sys
     import json
     import math
-
+    import os
 
     sensor_model = 'Fineoffset-WHx080'
     sensor_id = 87
 
     verbosity = 0
     print_output = 1
+
+    recent_values_fn = 'recent.json'
 
     wind_dir1 = Circular_filter(Exponential_smoothing_1, (0.05, ))
     wind1 = Exponential_smoothing_1(0.05)
@@ -143,3 +146,9 @@ if __name__ == '__main__':
 
         if print_output:
             print(json.dumps(j), flush=True)
+
+        if recent_values_fn:
+            recent_values_fn_tmp = recent_values_fn + '.tmp'
+            with open(recent_values_fn_tmp, 'w', encoding='ASCII') as f:
+                json.dump(j, f)
+            os.rename(recent_values_fn_tmp, recent_values_fn)
