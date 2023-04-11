@@ -1,0 +1,129 @@
+#! /usr/bin/python3
+
+import datetime
+import json
+import os
+import re
+import sys
+
+verbose = True if os.getenv('MUNIN_DEBUG') == '1' else False
+
+def verboselog(s):
+    if verbose:
+        sys.stderr.write('{}: {}\n'.format(plugin_name, s))
+
+
+logdir = "/home/stephen/workspace/rtl-thing"
+
+plugin_name = os.path.basename(sys.argv[0])
+scriptname, hostname = re.split('_', plugin_name, maxsplit=1)
+
+
+_graph_specs = [
+    {
+        'name': 'temperature',
+        'config': [
+            "graph_title Temperature",
+            "graph_category weather",
+            "graph_vlabel Temperature (°C)",
+        ],
+        'fields': [
+            {
+                'name': 'temperature',
+                'config': [
+                    'label Temperature',
+                ],
+                'fmt': '{:.1f}',
+                'param': 'temperature_C',
+            },
+        ],
+    },
+]
+
+def config(hostname):
+    print("host_name {}".format(hostname))
+    print()
+    for gr in _graph_specs:
+        gr_name = gr['name']
+        print("multigraph {}_{}".format(scriptname.replace('-', '_'), gr_name))
+
+        for cfg in gr['config']:
+            print(cfg)
+
+        for fld in gr['fields']:
+            fld_name = fld['name']
+            for cfg in fld['config']:
+                print('{}.{}'.format(fld_name, cfg))
+        print()
+
+
+def fetch(hostname):
+    #logfile_basename = hostname + '-current.json'
+    summary_file = os.path.join(logdir, 'recent.json')
+
+    try:
+        with open(summary_file, 'rb') as f:
+            data = json.load(f)
+            #print(data)
+    except FileNotFoundError:
+        data = None
+
+    if data:
+        print("host_name {}".format(hostname))
+        for gr in _graph_specs:
+            gr_name = gr['name']
+            print('multigraph {}_{}'.format(scriptname.replace('-', '_'), gr_name))
+
+            for fld in gr['fields']:
+                fld_name = fld['name']
+                param_name = fld['param']
+                fmt = fld['fmt']
+
+                if param_name is not None:
+                    try:
+                        ts = int(data['time'])
+                        value = data[param_name]
+                    except KeyError:
+                        ts = None
+                        value = None
+
+                    if ts is None:
+                        value = None
+                    else:
+                        now_dt = datetime.datetime.now(datetime.timezone.utc)
+                        item_dt = datetime.datetime.fromtimestamp(ts, datetime.timezone.utc)
+                        age_s = (now_dt - item_dt).total_seconds()
+                        if age_s >= 300:  # 5 mins
+                            value = None
+
+                    if value is None:
+                        value = 'U'
+
+                    if value != 'U':
+                        value_fmt = fmt.format(value)
+                    else:
+                        value_fmt = 'U'
+
+                    print('{}.value {}'.format(fld_name, value_fmt))
+            print()
+
+
+if len(sys.argv) > 1:
+    cmd = sys.argv[1]
+    if cmd == 'config':
+        config(hostname)
+        if True:  # if we support dirtyconfig
+            fetch(hostname)
+        sys.exit(0)
+
+    if cmd == 'suggest':
+        files = os.listdir(logdir)
+        hostnames = { re.sub('.local.*$', '.local', f) for f in files }
+        for hn in sorted( hostnames):
+            print(hn)
+        sys.exit(0)
+
+    verboselog('unknown argument "{}"'.format(cmd))
+    exit(1)
+
+fetch(hostname)
