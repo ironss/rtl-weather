@@ -2,7 +2,7 @@
 
 . ./rtl-thing.config
 
-rtl_433 -d:$RTL_SERIAL -F json -M time:unix:utc -M protocol -M level -C si | \
+rtl_433 -d:$RTL_SERIAL $RTL_PROTOCOLS -F json -M time:unix:utc -M protocol -M level -C si | \
 tee -a rtl-thing.log | \
 python3 ./ws-filter.py | \
 tee -a ws-filter.log | \

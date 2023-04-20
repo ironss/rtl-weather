@@ -1,4 +1,5 @@
 RTL_SERIAL=<something>
+RTL_PROTOCOLS="-R 32"
 
 MQTT_HOST=test.mosquitto.org
 MQTT_PORT=1884
