@@ -25,19 +25,81 @@ _graph_specs = [
         'config': [
             "graph_title Temperature",
             "graph_category weather",
+            'graph_args --lower-limit -10 --upper-limit 40',
             "graph_vlabel Temperature (°C)",
         ],
         'fields': [
             {
-                'name': 'temperature',
+                'name': 'air_temperature',
                 'config': [
-                    'label Temperature',
+                    'label Air temperature',
                 ],
                 'fmt': '{:.1f}',
                 'param': 'temperature_C',
             },
         ],
     },
+
+    {
+        'name': 'humidity',
+        'config': [
+            "graph_title Humidity",
+            "graph_category weather",
+            'graph_args --lower-limit 0 --upper-limit 100 --rigid',
+            "graph_vlabel Humidity (°RH)",
+        ],
+        'fields': [
+            {
+                'name': 'air_humidity',
+                'config': [
+                    'label Air humidity',
+                ],
+                'fmt': '{:.0f}',
+                'param': 'humidity',
+            },
+        ],
+    },
+
+    {
+        'name': 'rain',
+        'config': [
+            'graph_title Rain',
+            'graph_category weather',
+            'graph_args --lower-limit 0 --upper-limit 10',
+            'graph_vlabel Rainfall (mm/h)',
+        ],
+        'fields': [
+            {
+                'name': 'rain_1h',
+                'config': [
+                    'label Rainfall (mm/h)',
+                ],
+                'fmt': '{:0.1f}',
+                'param': 'rain_1h_mm',
+            },
+        ],
+    },
+
+    {
+        'name': 'windspeed',
+        'config': [
+            'graph_title Wind speed',
+            'graph_category weather',
+            'graph_args --lower-limit 0 --upper-limit 10',
+            'graph_vlabel Rainfall (mm/h)',
+        ],
+        'fields': [
+            {
+                'name': 'rain_1h',
+                'config': [
+                    'label Rainfall (mm/h)',
+                ],
+                'fmt': '{:0.1f}',
+                'param': 'rain_1h_mm',
+            },
+        ],
+    },
+
 ]
 
 def config(hostname):
