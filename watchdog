@@ -1,0 +1,36 @@
+#! /bin/bash
+# Read stdin continuously; exit if a particular string
+# does not appear within a time limit
+
+# Works with bash; sh/ash/dash and friends do not
+# have a timeout option for the 'read' builtin
+
+RE=${1-.}
+TIMEOUT=${2-10}
+
+t_last=$(date +%s)
+t_now=$t_last
+t_diff=$((t_now - $t_last))
+
+cont=1
+while [ $cont -eq 1 ] ; do
+    read -t 1 data
+    if [ $? -eq 1 ] ; then  # Exit if stdin closes
+        cont=0
+    fi
+    echo $data
+
+    t_now=$(date +%s)
+    echo $data | grep $RE
+    if [ $? -eq 0 ] ; then  # Reset the timer if regular expression matches
+        t_last=$t_now
+    fi
+
+    t_diff=$((t_now - $t_last))
+    t_remaining=$(($TIMEOUT - $t_diff))
+    if [ $t_remaining -le 0 ] ; then  # Exit if remaining time is zero or less
+        cont=0
+    fi
+
+    # echo $t_remaining >&2
+done
