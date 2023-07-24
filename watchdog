@@ -14,23 +14,30 @@ t_diff=$((t_now - $t_last))
 
 cont=1
 while [ $cont -eq 1 ] ; do
-    read -t 1 data
-    if [ $? -eq 1 ] ; then  # Exit if stdin closes
-        cont=0
-    fi
-    echo $data
-
+    read -t 10 data
+    read_status=$?
     t_now=$(date +%s)
-    echo $data | grep $RE
-    if [ $? -eq 0 ] ; then  # Reset the timer if regular expression matches
-        t_last=$t_now
+
+#    echo $read_status
+#    echo $data
+    if [ $read_status -eq 1 ] ; then  # Exit if stdin closes
+        cont=0
+        echo  "watchdog: stdin closed" >&2
+    fi
+    if [ $read_status -eq 0 ] ; then  # Process data if received
+        echo "watchdog: $data" >&2
+        echo $data | grep $RE > /dev/null
+        if [ $? -eq 0 ] ; then  # Reset the timer if regular expression matches
+            t_last=$t_now
+        fi
     fi
 
     t_diff=$((t_now - $t_last))
     t_remaining=$(($TIMEOUT - $t_diff))
     if [ $t_remaining -le 0 ] ; then  # Exit if remaining time is zero or less
+        echo "watchdog: timeout" >&2
         cont=0
     fi
 
-    # echo $t_remaining >&2
+    #echo "watchdog: $t_remaining s remaining" >&2
 done
