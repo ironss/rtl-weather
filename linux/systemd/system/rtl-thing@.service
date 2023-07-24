@@ -7,8 +7,8 @@ User=%i
 Group=%i
 WorkingDirectory=/home/%i/workspace/rtl-thing
 ExecStart=/home/%i/workspace/rtl-thing/rtl-thing
-#ExecStart=/home/rtl-thing/rtl-thing/rtl-thing
-Restart=always
+Restart=on-failure
+RestartSec=60s
 
 [Install]
 WantedBy=default.target
