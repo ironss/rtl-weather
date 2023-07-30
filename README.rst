@@ -55,11 +55,43 @@ Parameters of interest
 * Weather forecasts at various locations
 * Sunrise, sunset, moonrise and moonset forecasts at various
 
+
+Tide predictions
+----------------
+* Primary ports tide data, updated annually
+* Secondary ports data
+* Regions -- a named subset of ports
+* Trips -- a named region over a range of dates; date range can be open-ended at either end
+* Tide predictions are made for trips; the predictions are updated when
+    * new primary port data is added (~annually)
+    * a port is added to or removed from a region
+    * a trip is modified by changing the date range
+
+
+Satellite predictions
+---------------------
+* A list of TLE data file sources
+* Historical values for TLE data files
+* Named places with geo location data
+* Named sets of places
+* Named sets of satellites of interest
+* Predictions: tuple of (place-set, satellite-set, time-range)
+
+
+Measurement data
+----------------
+* Sensors (types of sensors)
+* Sensor parameters - list of measurements for each type of sensor
+* Available sensors - named instances of sensors
+* Sensor reports - timestamped set of measurements from each available sensor
+* Sensor measurements - an individual timestamp measurement from each sensor
+
+
 Setup
 =====
 
 Local install
-=============
+-------------
 
 * sudo apt install rtl-433
 * sudo apt install jq
@@ -67,7 +99,7 @@ Local install
 
 
 Thingsboard server
-==================
+------------------
 
 * Create device with MQTT transport
 * Use MQTT token authentication
@@ -78,7 +110,7 @@ Thingsboard server
 
 
 Local device
-============
+------------
 
 * Use rtl_433 to receive data from the weather station
 * Use jq to modify JSON output from rtl_433 into a format expected by Thingsboard
@@ -101,19 +133,17 @@ rtl_433 -d:$RTL_SERIAL -F json -M time:unix:utc -M protocol -M level -C si | jq 
 Use SQLite to store the data from rtl_433, rather than a log file
 
 Advantages
+----------
 
 * Can separate receiving raw data from uploading to server.
 * Can record which data has been uploaded
 
-Disadvantage
+
+Disadvantages
+-------------
 
 * How to know when new data has arrived
 
-
-TODO
-====
-
-* Receive weather data from local sources
 
 Notes
 =====
