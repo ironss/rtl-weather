@@ -7,7 +7,8 @@ User=%i
 Group=%i
 WorkingDirectory=/home/%i/workspace/rtl-thing
 ExecStart=/home/%i/workspace/rtl-thing/rtl-thing
-Restart=on-failure
+#Restart=on-failure
+Restart=always
 RestartSec=60s
 
 [Install]
