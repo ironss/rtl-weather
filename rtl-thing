@@ -2,6 +2,7 @@
 
 . ./rtl-thing.config
 
+usbreset "RTL2832U"
 rtl_433 -d:$RTL_SERIAL $RTL_PROTOCOLS -F json -M time:unix:utc -M protocol -M level -C si | \
 tee -a rtl-thing.log | \
 python3 -u ./ws-filter.py | \
