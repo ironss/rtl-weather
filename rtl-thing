@@ -10,7 +10,7 @@ tee -a ws-filter.log | \
 jq --compact-output --monochrome-output --unbuffered \
    '{ ts: (.time | tonumber * 1000), values: {battery_ok, temperature_C, humidity, wind_dir_deg, wind_avg_km_h, wind_max_km_h, rain_mm, rssi, snr, noise, wind_dir_smooth_deg, wind_avg_smooth_km_h, wind_max_smooth_km_h, rain_1h_mm, rain_24h_mm}}' | \
 tee -a jq.log | \
-stdbuf -oL mosquitto_pub -V $MQTT_VER --host $MQTT_HOST --port $MQTT_PORT --topic $MQTT_TOPIC --username $MQTT_TOKEN -l --debug -k 1200 | \
+stdbuf -oL mosquitto_pub -V $MQTT_VER --host $MQTT_HOST --port $MQTT_PORT --topic $MQTT_TOPIC --username $MQTT_TOKEN -l --debug -k 1800 | \
 ts "%Y-%m-%d %H:%M:%S%z" | \
 tee -a mosquitto.log | \
 ( ./watchdog PUBLISH 300 && kill $(pgrep -g 0 rtl_433) )
